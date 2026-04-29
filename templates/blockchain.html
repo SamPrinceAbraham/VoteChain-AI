@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Blockchain Explorer – VoteChain AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <div class="text-center mb-5">
+    <div class="step-badge">Transparency Layer</div>
+    <h2 class="section-title mt-3">⛓️ Blockchain Explorer</h2>
+    <p class="section-sub">Every vote is a block. Every block is permanent. Every hash is verifiable.</p>
+    {% if chain_valid %}
+      <span class="integrity-badge valid"><i class="bi bi-shield-fill-check me-1"></i>Chain Status: VALID – {{ chain|length }} blocks</span>
+    {% else %}
+      <span class="integrity-badge invalid"><i class="bi bi-shield-fill-x me-1"></i>Chain Status: COMPROMISED</span>
+    {% endif %}
+  </div>
+
+  <div class="chain-explorer">
+    {% for block in chain %}
+    <div class="chain-block glass-card {% if block.index == 0 %}genesis-block{% endif %}">
+      <div class="block-header d-flex justify-content-between align-items-center">
+        <span class="block-num">
+          {% if block.index == 0 %}⛏️ Genesis Block{% else %}📦 Block #{{ block.index }}{% endif %}
+        </span>
+        <span class="block-ts">{{ block.timestamp }}</span>
+      </div>
+      <div class="block-body mt-3">
+        <div class="block-row">
+          <span class="br-key">Candidate</span>
+          <span class="br-val {% if block.candidate == 'NONE' %}text-muted{% endif %}">{{ block.candidate }}</span>
+        </div>
+        <div class="block-row">
+          <span class="br-key">Voter ID</span>
+          <span class="br-val">{{ block.voter_id }}</span>
+        </div>
+        <div class="block-row">
+          <span class="br-key">Hash</span>
+          <span class="br-val hash-text">{{ block.hash }}</span>
+        </div>
+        <div class="block-row">
+          <span class="br-key">Prev Hash</span>
+          <span class="br-val hash-text">{{ block.previous_hash }}</span>
+        </div>
+      </div>
+    </div>
+    {% if not loop.last %}
+      <div class="chain-link">↓</div>
+    {% endif %}
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

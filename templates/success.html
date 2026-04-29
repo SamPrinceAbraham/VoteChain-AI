@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Vote Submitted – VoteChain AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-7 text-center">
+
+      <div class="glass-card success-card p-5">
+        <div class="success-anim">✅</div>
+        <h2 class="success-title mt-3">Vote Cast Successfully!</h2>
+        <p class="success-sub">Thank you, <strong>{{ voter_name }}</strong>. Your vote has been recorded on the blockchain.</p>
+
+        <!-- Constituency badge -->
+        <div class="constituency-tag mt-2 mb-3">
+          <i class="bi bi-geo-alt-fill me-1"></i>Constituency: <strong>{{ constituency }}</strong>
+        </div>
+
+        <!-- Block info -->
+        <div class="block-info glass-card mt-3 p-4 text-start">
+          <h5 class="block-title"><i class="bi bi-cube me-2"></i>Block #{{ block.index }}</h5>
+          <table class="table table-sm block-table mb-0">
+            <tr><th>Constituency</th><td>{{ block.constituency }}</td></tr>
+            <tr><th>Timestamp</th>  <td>{{ block.timestamp }}</td></tr>
+            <tr><th>Block Hash</th> <td class="hash-cell">{{ block.hash }}</td></tr>
+            <tr><th>Prev Hash</th>  <td class="hash-cell">{{ block.previous_hash }}</td></tr>
+          </table>
+        </div>
+
+        <!-- Anonymity note -->
+        <div class="privacy-note mt-3">
+          <i class="bi bi-eye-slash me-1"></i>
+          Your candidate choice is kept confidential. This receipt confirms participation only.
+        </div>
+
+        <div class="d-flex gap-3 mt-4 justify-content-center flex-wrap">
+          <a href="{{ url_for('download_receipt') }}" class="btn-success-custom" target="_blank">
+            <i class="bi bi-file-earmark-pdf-fill me-2"></i>Download PDF Receipt
+          </a>
+          <a href="{{ url_for('results') }}" class="btn-primary-custom">
+            <i class="bi bi-bar-chart-line me-2"></i>View Live Results
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Full Audit Log – VoteChain AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h2 class="section-title">📋 Full Audit Log</h2>
+      <p class="section-sub mb-0">Every system action, timestamped and immutable.</p>
+    </div>
+    <a href="{{ url_for('admin') }}" class="btn-ghost-custom">
+      <i class="bi bi-arrow-left me-1"></i>Back to Admin
+    </a>
+  </div>
+
+  <div class="glass-card p-4">
+    {% if logs %}
+    <div class="table-responsive">
+      <table class="table table-dark admin-table" style="font-size:.82rem">
+        <thead>
+          <tr>
+            <th>#</th><th>Timestamp</th><th>Voter ID</th><th>Action</th><th>Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          <tr>
+            <td style="color:var(--text-muted)">{{ log.id }}</td>
+            <td style="white-space:nowrap;color:var(--text-muted)">{{ log.timestamp }}</td>
+            <td><code>{{ log.voter_id }}</code></td>
+            <td>
+              <span class="audit-action-badge audit-{{ log.action|lower|replace('_','-') }}">
+                {{ log.action }}
+              </span>
+            </td>
+            <td style="color:var(--text-muted)">{{ log.detail }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="text-center mt-2" style="font-size:.8rem;color:var(--text-muted)">Showing latest {{ logs|length }} entries.</p>
+    {% else %}
+      <div class="empty-state">No audit log entries yet.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

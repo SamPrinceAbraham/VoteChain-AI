@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Live Results – VoteChain AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <!-- Header -->
+  <div class="text-center mb-4">
+    <div class="step-badge">Live Election Results</div>
+    <h2 class="section-title mt-3">📊 Vote Tally Dashboard</h2>
+    <p class="section-sub">Results are read directly from the immutable blockchain.</p>
+    {% if chain_valid %}
+      <span class="integrity-badge valid"><i class="bi bi-shield-fill-check me-1"></i>Blockchain Integrity: VALID</span>
+    {% else %}
+      <span class="integrity-badge invalid"><i class="bi bi-shield-fill-x me-1"></i>Blockchain Integrity: COMPROMISED</span>
+    {% endif %}
+  </div>
+
+  <!-- LOCKED STATE -->
+  <div id="lockedView" class="text-center py-5" {% if not locked %}style="display:none"{% endif %}>
+    <div class="glass-card p-5 mx-auto" style="max-width:520px">
+      <div style="font-size:4rem">🔒</div>
+      <h3 class="mt-3" style="color:var(--warning)">Results are Locked</h3>
+      <p class="section-sub">The Election Administrator has locked results until the election concludes.</p>
+      {% if is_admin %}
+        <a href="{{ url_for('toggle_results_lock') }}" class="btn-primary-custom mt-2">
+          <i class="bi bi-unlock me-2"></i>Unlock Results (Admin)
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- RESULTS VIEW -->
+  <div id="resultsView" {% if locked %}style="display:none"{% endif %}>
+
+    <!-- Constituency Tabs -->
+    <div class="constituency-tabs mb-4">
+      <button class="ctab active" onclick="switchTab('all', this)">🌐 All</button>
+      <button class="ctab" onclick="switchTab('North District', this)">🏙️ North District</button>
+      <button class="ctab" onclick="switchTab('South District', this)">🌆 South District</button>
+      <button class="ctab" onclick="switchTab('Central District', this)">🏛️ Central District</button>
+    </div>
+
+    <!-- Charts row -->
+    <div class="row g-4">
+      <div class="col-lg-7">
+        <div class="glass-card p-4">
+          <h5 class="chart-title"><i class="bi bi-bar-chart-fill me-2"></i>Vote Distribution</h5>
+          <canvas id="barChart" height="260"></canvas>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="glass-card p-4">
+          <h5 class="chart-title"><i class="bi bi-pie-chart-fill me-2"></i>Vote Share</h5>
+          <canvas id="pieChart" height="260"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Constituency Turnout Analytics -->
+    <div class="row mt-4 g-4">
+      <div class="col-lg-8">
+        <div class="glass-card p-4">
+          <h5 class="chart-title mb-3"><i class="bi bi-trophy-fill me-2"></i>Leaderboard</h5>
+          <div id="leaderboard" class="leaderboard"></div>
+          <div class="mt-3 text-center">
+            <span class="total-badge" id="totalVotes">Total Votes: Loading…</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="glass-card p-4">
+          <h5 class="chart-title mb-3"><i class="bi bi-people-fill me-2"></i>Constituency Turnout</h5>
+          <div id="turnoutStats"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /resultsView -->
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+const PALETTE = ["#6C63FF","#F7971E","#11998e","#ee0979","#12c2e9","#f64f59","#a78bfa","#00D4AA"];
+let barChart, pieChart;
+let allData = null;
+let currentTab = "all";
+
+async function loadResults() {
+  const resp = await fetch("/api/results");
+  const data = await resp.json();
+  if (data.locked) return;
+  allData = data;
+  renderTab(currentTab);
+  renderTurnout(data.turnout_stats || []);
+}
+
+function switchTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll(".ctab").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  if (allData) renderTab(tab);
+}
+
+function renderTab(tab) {
+  let results;
+  if (tab === "all") {
+    results = allData.results || {};
+  } else {
+    results = (allData.by_constituency || {})[tab] || {};
+  }
+
+  const labels = Object.keys(results);
+  const values = Object.values(results);
+  const total  = values.reduce((a,b) => a+b, 0);
+
+  document.getElementById("totalVotes").textContent =
+    `Total Votes (${tab === 'all' ? 'All' : tab}): ${total}`;
+
+  const chartOpts = {
+    responsive: true,
+    plugins: { legend: { labels: { color: "#e0e0e0", font: { family: "Outfit" } } } }
+  };
+
+  if (barChart) barChart.destroy();
+  barChart = new Chart(document.getElementById("barChart"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{ label: "Votes", data: values,
+        backgroundColor: PALETTE.slice(0, labels.length),
+        borderRadius: 10, borderSkipped: false }]
+    },
+    options: {
+      ...chartOpts,
+      scales: {
+        x: { ticks: { color: "#aaa" }, grid: { color: "rgba(255,255,255,.05)" } },
+        y: { ticks: { color: "#aaa", stepSize: 1 }, grid: { color: "rgba(255,255,255,.05)" }, beginAtZero: true }
+      }
+    }
+  });
+
+  if (pieChart) pieChart.destroy();
+  pieChart = new Chart(document.getElementById("pieChart"), {
+    type: "doughnut",
+    data: {
+      labels,
+      datasets: [{ data: values,
+        backgroundColor: PALETTE.slice(0, labels.length),
+        borderColor: "#1a1a2e", borderWidth: 3 }]
+    },
+    options: { ...chartOpts, cutout: "60%" }
+  });
+
+  const sorted = labels.map((l,i) => ({ name: l, votes: values[i] }))
+                        .sort((a,b) => b.votes - a.votes);
+  const medals = ["🥇","🥈","🥉"];
+  document.getElementById("leaderboard").innerHTML = sorted.map((c,i) => {
+    const pct = total > 0 ? Math.round(c.votes / total * 100) : 0;
+    return `<div class="lb-row">
+      <span class="lb-rank">${medals[i] || (i+1)}</span>
+      <span class="lb-name">${c.name}</span>
+      <div class="lb-bar-wrap"><div class="lb-bar" style="width:${pct}%;background:${PALETTE[i]}"></div></div>
+      <span class="lb-votes">${c.votes} (${pct}%)</span>
+    </div>`;
+  }).join("") || "<p class='text-muted text-center'>No votes yet.</p>";
+}
+
+function renderTurnout(stats) {
+  const el = document.getElementById("turnoutStats");
+  if (!stats.length) { el.innerHTML = "<p class='text-muted'>No data.</p>"; return; }
+  el.innerHTML = stats.map(s => {
+    const reg   = s.total_registered || 0;
+    const voted = s.total_voted || 0;
+    const pct   = reg > 0 ? Math.round(voted/reg*100) : 0;
+    return `<div class="turnout-row mb-3">
+      <div class="d-flex justify-content-between mb-1">
+        <span style="font-size:.85rem;font-weight:600">${s.constituency}</span>
+        <span style="font-size:.8rem;color:var(--text-muted)">${voted}/${reg} (${pct}%)</span>
+      </div>
+      <div class="conf-bar-bg">
+        <div class="conf-bar-fill" style="width:${pct}%;background:var(--accent-grad)"></div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+loadResults();
+setInterval(loadResults, 5000);
+</script>
+{% endblock %}

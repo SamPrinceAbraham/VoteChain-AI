@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}VoteChain AI – Secure Voting{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+  <div class="container">
+    <div class="row align-items-center min-vh-85">
+
+      <!-- LEFT: Hero copy -->
+      <div class="col-lg-6 hero-copy">
+        <div class="badge-pill mb-3">
+          <span class="dot-live"></span> Election 2026 – Live
+        </div>
+        <h1 class="hero-title">
+          Secure.<br>
+          <span class="gradient-text">AI-Powered.</span><br>
+          Blockchain Voting.
+        </h1>
+        <p class="hero-sub">
+          Your vote is protected by facial recognition and stored immutably on a tamper-proof blockchain.
+          No fraud. No duplicates. Total transparency.
+        </p>
+        <div class="feature-pills d-flex flex-wrap gap-2 mb-4">
+          <span class="pill"><i class="bi bi-shield-fill-check"></i> Face Authentication</span>
+          <span class="pill"><i class="bi bi-boxes"></i> Blockchain Secured</span>
+          <span class="pill"><i class="bi bi-graph-up-arrow"></i> Live Results</span>
+        </div>
+      </div>
+
+      <!-- RIGHT: Login card -->
+      <div class="col-lg-5 offset-lg-1">
+        <div class="auth-card glass-card">
+          <div class="auth-card-header">
+            <div class="auth-icon">🗳️</div>
+            <h2 class="auth-title">Cast Your Vote</h2>
+            <p class="auth-sub">Enter your Voter ID to begin</p>
+          </div>
+          <form action="{{ url_for('verify_voter_id') }}" method="POST" id="voterLoginForm">
+            <div class="form-group-custom mb-4">
+              <label class="form-label-custom" for="voter_id">
+                <i class="bi bi-person-badge me-2"></i>Voter ID
+              </label>
+              <input type="text"
+                     id="voter_id"
+                     name="voter_id"
+                     class="form-control-custom"
+                     placeholder="e.g. VOTER001"
+                     autocomplete="off"
+                     required />
+              <div class="input-hint">Your unique voter identification number</div>
+            </div>
+            <button type="submit" class="btn-primary-custom w-100" id="proceedBtn">
+              <i class="bi bi-arrow-right-circle me-2"></i>Proceed to Face Verification
+            </button>
+          </form>
+          <div class="auth-divider"><span>Protected by AI</span></div>
+          <div class="security-badges d-flex justify-content-center gap-3">
+            <span class="sec-badge"><i class="bi bi-eye"></i> Face ID</span>
+            <span class="sec-badge"><i class="bi bi-lock-fill"></i> SHA-256</span>
+            <span class="sec-badge"><i class="bi bi-check2-circle"></i> 1-Vote Limit</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS ROW -->
+<div class="stats-section">
+  <div class="container">
+    <div class="row g-4 justify-content-center">
+      <div class="col-6 col-md-3">
+        <div class="stat-card glass-card text-center">
+          <div class="stat-icon">⛓️</div>
+          <div class="stat-value">100%</div>
+          <div class="stat-label">Tamper-Proof</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card glass-card text-center">
+          <div class="stat-icon">🤖</div>
+          <div class="stat-value">AI</div>
+          <div class="stat-label">Face Verified</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card glass-card text-center">
+          <div class="stat-icon">🔒</div>
+          <div class="stat-value">SHA-256</div>
+          <div class="stat-label">Cryptographic</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card glass-card text-center">
+          <div class="stat-icon">📊</div>
+          <div class="stat-value">Live</div>
+          <div class="stat-label">Results Dashboard</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

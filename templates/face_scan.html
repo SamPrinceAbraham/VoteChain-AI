@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}Face Verification – VoteChain AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="glass-card face-scan-card p-4 p-md-5">
+
+        <!-- Header -->
+        <div class="text-center mb-4">
+          <div class="step-badge">Step 2 of 3 – Face Verification</div>
+          <h2 class="section-title mt-3">Hello, {{ voter_name }}! 👋</h2>
+          <p class="section-sub">Position your face in the circle and click <strong>Verify Face</strong></p>
+        </div>
+
+        <!-- Camera view -->
+        <div class="camera-container mb-4">
+          <div class="camera-ring" id="cameraRing">
+            <video id="videoFeed" autoplay muted playsinline></video>
+            <canvas id="snapCanvas" style="display:none"></canvas>
+            <div class="scan-overlay" id="scanOverlay">
+              <div class="scan-line" id="scanLine"></div>
+            </div>
+            <div class="face-guide"></div>
+          </div>
+          <div class="camera-status" id="cameraStatus">
+            <span class="status-dot dot-idle"></span> Camera initializing...
+          </div>
+        </div>
+
+        <!-- Confidence bar -->
+        <div class="confidence-wrap mb-4" id="confidenceWrap" style="display:none">
+          <div class="conf-label d-flex justify-content-between">
+            <span>Match Confidence</span>
+            <span id="confPct">0%</span>
+          </div>
+          <div class="conf-bar-bg">
+            <div class="conf-bar-fill" id="confFill" style="width:0%"></div>
+          </div>
+        </div>
+
+        <!-- Result badge -->
+        <div id="resultBadge" class="result-badge mb-3" style="display:none"></div>
+
+        <!-- Actions -->
+        <button class="btn-primary-custom w-100 mb-3" id="verifyBtn" onclick="captureAndVerify()">
+          <i class="bi bi-person-bounding-box me-2"></i>Verify My Face
+        </button>
+        <a href="{{ url_for('index') }}" class="btn-ghost-custom w-100">
+          <i class="bi bi-arrow-left me-2"></i>Back
+        </a>
+
+        <!-- Hidden form to proceed to vote -->
+        <form id="proceedForm" action="{{ url_for('vote') }}" method="GET" style="display:none"></form>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const video = document.getElementById("videoFeed");
+const canvas = document.getElementById("snapCanvas");
+const verifyBtn = document.getElementById("verifyBtn");
+const cameraStatus = document.getElementById("cameraStatus");
+const scanOverlay = document.getElementById("scanOverlay");
+const resultBadge = document.getElementById("resultBadge");
+const confidenceWrap = document.getElementById("confidenceWrap");
+const confFill = document.getElementById("confFill");
+const confPct = document.getElementById("confPct");
+
+// Start webcam
+async function startCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+    video.srcObject = stream;
+    cameraStatus.innerHTML = '<span class="status-dot dot-live"></span> Camera ready – click Verify';
+  } catch(e) {
+    cameraStatus.innerHTML = '<span class="status-dot dot-err"></span> Camera access denied';
+    verifyBtn.disabled = true;
+  }
+}
+startCamera();
+
+async function captureAndVerify() {
+  verifyBtn.disabled = true;
+  verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing…';
+  scanOverlay.classList.add("scanning");
+
+  // capture frame
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext("2d").drawImage(video, 0, 0);
+  const b64 = canvas.toDataURL("image/jpeg", 0.85);
+
+  try {
+    const resp = await fetch("/api/verify-face", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image: b64 })
+    });
+    const data = await resp.json();
+
+    // show confidence
+    const pct = Math.round(data.confidence * 100);
+    confidenceWrap.style.display = "block";
+    confFill.style.width = pct + "%";
+    confFill.style.background = data.success ? "var(--success-grad)" : "var(--danger-grad)";
+    confPct.textContent = pct + "%";
+
+    resultBadge.style.display = "block";
+    if (data.success) {
+      resultBadge.className = "result-badge success-badge";
+      resultBadge.innerHTML = `<i class="bi bi-check-circle-fill me-2"></i>${data.message}`;
+      scanOverlay.classList.remove("scanning");
+      setTimeout(() => { document.getElementById("proceedForm").submit(); }, 1500);
+    } else {
+      resultBadge.className = "result-badge error-badge";
+      resultBadge.innerHTML = `<i class="bi bi-x-circle-fill me-2"></i>${data.message}`;
+      scanOverlay.classList.remove("scanning");
+      verifyBtn.disabled = false;
+      verifyBtn.innerHTML = '<i class="bi bi-person-bounding-box me-2"></i>Try Again';
+    }
+  } catch(err) {
+    resultBadge.style.display = "block";
+    resultBadge.className = "result-badge error-badge";
+    resultBadge.innerHTML = "Server error. Please try again.";
+    scanOverlay.classList.remove("scanning");
+    verifyBtn.disabled = false;
+    verifyBtn.innerHTML = '<i class="bi bi-person-bounding-box me-2"></i>Verify My Face';
+  }
+}
+</script>
+{% endblock %}

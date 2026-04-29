@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Admin Login – VoteChain AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-5">
+      <div class="glass-card p-5 text-center">
+        <div class="auth-icon">🛡️</div>
+        <h2 class="auth-title mt-3">Admin Access</h2>
+        <p class="auth-sub">Enter the admin password to access the control panel.</p>
+        <form action="{{ url_for('admin') }}" method="POST">
+          <div class="form-group-custom mb-4">
+            <label class="form-label-custom" for="password"><i class="bi bi-key me-2"></i>Password</label>
+            <input type="password" id="password" name="password" class="form-control-custom" placeholder="Admin password" required />
+          </div>
+          <button type="submit" class="btn-primary-custom w-100">
+            <i class="bi bi-shield-lock me-2"></i>Login as Admin
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

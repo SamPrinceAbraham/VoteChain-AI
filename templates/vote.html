@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Voting Booth – VoteChain AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+
+      <!-- Header -->
+      <div class="text-center mb-5">
+        <div class="step-badge">Step 3 of 3 – Cast Your Vote</div>
+        <h2 class="section-title mt-3">Welcome, {{ voter_name }}! 🗳️</h2>
+        <div class="constituency-tag mt-2">
+          <i class="bi bi-geo-alt-fill me-1"></i>Constituency: <strong>{{ constituency }}</strong>
+        </div>
+        <p class="section-sub mt-2">Select your candidate. <strong>This action is permanent.</strong></p>
+      </div>
+
+      <form action="{{ url_for('cast_vote') }}" method="POST" id="voteForm" onsubmit="return confirmVote()">
+        <div class="row g-4 mb-5" id="candidateGrid">
+          {% for c in candidates %}
+          <div class="col-md-6">
+            <label class="candidate-card glass-card" for="c{{ c.id }}">
+              <input type="radio" name="candidate" id="c{{ c.id }}" value="{{ c.name }}" class="candidate-radio" required />
+              <div class="candidate-inner">
+                <!-- Candidate photo or fallback symbol -->
+                <div class="candidate-avatar">
+                  {% if c.photo_path %}
+                    <img src="{{ url_for('static', filename=c.photo_path.split('static/')[-1]) }}" alt="{{ c.name }}" class="candidate-photo"/>
+                  {% else %}
+                    <div class="candidate-symbol-lg">{{ c.symbol }}</div>
+                  {% endif %}
+                </div>
+                <div class="candidate-info">
+                  <div class="candidate-name">{{ c.name }}</div>
+                  <div class="candidate-party">
+                    <span class="party-symbol">{{ c.symbol }}</span> {{ c.party }}
+                  </div>
+                </div>
+                <div class="candidate-check"><i class="bi bi-check-circle-fill"></i></div>
+              </div>
+            </label>
+          </div>
+          {% else %}
+          <div class="col-12">
+            <div class="glass-card p-4 text-center">
+              <p class="text-muted">No candidates registered for <strong>{{ constituency }}</strong> yet. Please contact an administrator.</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        {% if candidates %}
+        <div class="text-center">
+          <button type="submit" class="btn-vote w-100 mb-3" id="castBtn" disabled>
+            <i class="bi bi-send-check-fill me-2"></i>Cast Vote on Blockchain
+          </button>
+          <p class="vote-disclaimer">
+            <i class="bi bi-shield-lock me-1"></i>
+            Your vote is encrypted and permanently recorded on the blockchain.
+          </p>
+        </div>
+        {% endif %}
+      </form>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const radios  = document.querySelectorAll(".candidate-radio");
+const castBtn = document.getElementById("castBtn");
+
+radios.forEach(r => {
+  r.addEventListener("change", () => {
+    document.querySelectorAll(".candidate-card").forEach(c => c.classList.remove("selected"));
+    r.closest(".candidate-card").classList.add("selected");
+    castBtn.disabled = false;
+  });
+});
+
+function confirmVote() {
+  const sel = document.querySelector(".candidate-radio:checked");
+  if (!sel) return false;
+  return confirm(`✅ Confirm your vote for:\n\n"${sel.value}"\n\nThis cannot be changed once submitted.`);
+}
+</script>
+{% endblock %}
