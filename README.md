@@ -1,8 +1,6 @@
-Here’s a clean and professional **README.md** you can use for your GitHub project:
 
----
 
-# 🗳️ AI + Blockchain Based Digital Voting System
+#  AI + Blockchain Based Digital Voting System
 
 ## 📌 Overview
 
@@ -81,17 +79,14 @@ pip install -r requirements.txt
 
 3. Run the application:
 
-```bash
+bash
 python app.py
-```
+
 
 4. Open in browser:
 
-```
-http://127.0.0.1:5000/
-```
 
----
+http://127.0.0.1:5000/
 
 ## 🔄 API Endpoints
 
@@ -100,7 +95,7 @@ http://127.0.0.1:5000/
 * `GET /api/results` → View results
 * `GET /api/blockchain` → View blockchain data
 
----
+
 
 ## 🔍 How It Works
 
@@ -110,7 +105,7 @@ http://127.0.0.1:5000/
 4. Chain validation ensures no tampering
 5. Receipt is generated for verification
 
----
+
 
 ## 🛡️ Security Highlights
 
@@ -119,7 +114,7 @@ http://127.0.0.1:5000/
 * AI-based identity verification
 * No centralized vote control
 
----
+
 
 ## 📈 Future Enhancements
 
@@ -128,18 +123,14 @@ http://127.0.0.1:5000/
 * Mobile app integration
 * Advanced ML models for higher accuracy
 
----
 
 ## 🤝 Contributing
 
 Pull requests are welcome. For major changes, open an issue first to discuss your ideas.
 
----
+
 
 ## 📜 License
 
 This project is open-source and available under the MIT License.
 
----
-
-If you want, I can **customize this README with your actual repo name, screenshots, or badges** to make it look even more professional.
